@@ -6,7 +6,7 @@ import io.github.alexarchambault.millnativeimage.upload.Upload
 import mill._
 import mill.scalalib._
 
-def scalafmtVersion = "3.0.2"
+def scalafmtVersion = "3.0.3"
 
 object native extends ScalaModule with NativeImage {
   def scalaVersion = "2.13.6"
