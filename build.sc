@@ -10,27 +10,54 @@ import mill.scalalib._
 
 def scalafmtVersion = "3.0.3"
 
-object native extends ScalaModule with NativeImage {
+trait ScalafmtNativeImage extends ScalaModule with NativeImage {
   def scalaVersion = "2.13.6"
+
+  def nativeImageClassPath = T{
+    runClasspath()
+  }
   def nativeImagePersist = System.getenv("CI") != null
   def nativeImageGraalVmJvmId = "graalvm-java11:21.2.0"
   def nativeImageName = "scalafmt"
   def ivyDeps = super.ivyDeps() ++ Seq(
     ivy"org.scalameta::scalafmt-cli:$scalafmtVersion"
   )
-  def nativeImageClassPath = T{
-    runClasspath()
-  }
   def nativeImageMainClass = "org.scalafmt.cli.Cli"
 
+  def nameSuffix = ""
   def copyToArtifacts(directory: String = "artifacts/") = T.command {
     val _ = Upload.copyLauncher(
       nativeImage().path,
       directory,
       "scalafmt",
-      compress = true
+      compress = true,
+      suffix = nameSuffix
     )
   }
+}
+
+object native extends ScalafmtNativeImage
+
+def csDockerVersion = "2.0.16"
+
+object `native-static` extends ScalafmtNativeImage {
+  def nameSuffix = "-static"
+  def nativeImageDockerParams = Some(
+    NativeImage.linuxStaticParams(
+      "messense/rust-musl-cross@sha256:12d0dd535ef7364bf49cb2608ae7eaf60e40d07834eb4d9160c592422a08d3b3",
+      s"https://github.com/coursier/coursier/releases/download/v$csDockerVersion/cs-x86_64-pc-linux"
+    )
+  )
+}
+
+object `native-mostly-static` extends ScalafmtNativeImage {
+  def nameSuffix = "-mostly-static"
+  def nativeImageDockerParams = Some(
+    NativeImage.linuxMostlyStaticParams(
+      "ubuntu:18.04", // TODO Pin that?
+      s"https://github.com/coursier/coursier/releases/download/v$csDockerVersion/cs-x86_64-pc-linux"
+    )
+  )
 }
 
 

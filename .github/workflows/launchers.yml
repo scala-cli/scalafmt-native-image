@@ -43,3 +43,55 @@ jobs:
         if: github.event_name == 'push'
         env:
           UPLOAD_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  generate-static-launcher:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          submodules: true
+      - uses: coursier/cache-action@v6.3
+      - uses: coursier/setup-action@v1
+        with:
+          jvm: 8
+      - run: |
+          ./mill -i "native-static.writeNativeImageScript" generate.sh && \
+          ./generate.sh && \
+          ./mill -i "native-static.copyToArtifacts" artifacts/
+      - uses: actions/upload-artifact@v2.2.4
+        with:
+          name: launcher-${{ matrix.os }}-static
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 1
+      - run: ./mill -i upload artifacts/
+        if: github.event_name == 'push'
+        env:
+          UPLOAD_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  generate-mostly-static-launcher:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          submodules: true
+      - uses: coursier/cache-action@v6.3
+      - uses: coursier/setup-action@v1
+        with:
+          jvm: 8
+      - run: |
+          ./mill -i "native-mostly-static.writeNativeImageScript" generate.sh && \
+          ./generate.sh && \
+          ./mill -i "native-mostly-static.copyToArtifacts" artifacts/
+      - uses: actions/upload-artifact@v2.2.4
+        with:
+          name: launcher-${{ matrix.os }}-mostly-static
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 1
+      - run: ./mill -i upload artifacts/
+        if: github.event_name == 'push'
+        env:
+          UPLOAD_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
