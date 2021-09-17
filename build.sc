@@ -42,5 +42,5 @@ def upload(directory: String = "artifacts/") = T.command {
     sys.error("UPLOAD_GH_TOKEN not set")
   }
   val (tag, overwriteAssets) = ("launchers", false)
-  Upload.upload("alexarchambault", "scalafmt-native", ghToken, tag, dryRun = false, overwrite = overwriteAssets)(launchers: _*)
+  Upload.upload("alexarchambault", "scalafmt-native-image", ghToken, tag, dryRun = false, overwrite = overwriteAssets)(launchers: _*)
 }
