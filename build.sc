@@ -97,5 +97,5 @@ def upload(directory: String = "artifacts/") = T.command {
     if (version.endsWith("-SNAPSHOT")) ("launchers", true)
     else ("v" + version, false)
 
-  Upload.upload("alexarchambault", "scalafmt-native-image", ghToken, tag, dryRun = false, overwrite = overwriteAssets)(launchers: _*)
+  Upload.upload("scala-cli", "scalafmt-native-image", ghToken, tag, dryRun = false, overwrite = overwriteAssets)(launchers: _*)
 }
