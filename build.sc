@@ -1,6 +1,6 @@
-import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version_mill0.9:0.1.1`
-import $ivy.`io.github.alexarchambault.mill::mill-native-image_mill0.9:0.1.12`
-import $ivy.`io.github.alexarchambault.mill::mill-native-image-upload:0.1.12`
+import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.1.4`
+import $ivy.`io.github.alexarchambault.mill::mill-native-image::0.1.19`
+import $ivy.`io.github.alexarchambault.mill::mill-native-image-upload:0.1.19`
 
 import de.tobiasroeser.mill.vcs.version._
 import io.github.alexarchambault.millnativeimage.NativeImage
@@ -11,7 +11,7 @@ import mill.scalalib._
 def scalafmtVersion = "3.4.3"
 
 trait ScalafmtNativeImage extends ScalaModule with NativeImage {
-  def scalaVersion = "2.13.6"
+  def scalaVersion = "2.13.8"
 
   def nativeImageClassPath = T{
     runClasspath()
@@ -22,7 +22,7 @@ trait ScalafmtNativeImage extends ScalaModule with NativeImage {
     )
   }
   def nativeImagePersist = System.getenv("CI") != null
-  def nativeImageGraalVmJvmId = "graalvm-java11:21.2.0"
+  def nativeImageGraalVmJvmId = "graalvm-java17:22.0.0"
   def nativeImageName = "scalafmt"
   def ivyDeps = super.ivyDeps() ++ Seq(
     ivy"org.scalameta::scalafmt-cli:$scalafmtVersion"
@@ -43,16 +43,28 @@ trait ScalafmtNativeImage extends ScalaModule with NativeImage {
 
 object native extends ScalafmtNativeImage
 
-def csDockerVersion = "2.0.16"
+def csDockerVersion = "2.1.0-M5-18-gfebf9838c"
 
 object `native-static` extends ScalafmtNativeImage {
   def nameSuffix = "-static"
-  def nativeImageDockerParams = Some(
-    NativeImage.linuxStaticParams(
-      "messense/rust-musl-cross@sha256:12d0dd535ef7364bf49cb2608ae7eaf60e40d07834eb4d9160c592422a08d3b3",
-      s"https://github.com/coursier/coursier/releases/download/v$csDockerVersion/cs-x86_64-pc-linux"
+  def buildHelperImage = T {
+    os.proc("docker", "build", "-t", "scala-cli-base-musl:latest", ".")
+      .call(cwd = os.pwd / "musl-image", stdout = os.Inherit)
+    ()
+  }
+  def nativeImageDockerParams = T{
+    buildHelperImage()
+    Some(
+      NativeImage.linuxStaticParams(
+        "scala-cli-base-musl:latest",
+        s"https://github.com/coursier/coursier/releases/download/v$csDockerVersion/cs-x86_64-pc-linux.gz"
+      )
     )
-  )
+  }
+  def writeNativeImageScript(scriptDest: String, imageDest: String = "") = T.command {
+    buildHelperImage()
+    super.writeNativeImageScript(scriptDest, imageDest)()
+  }
 }
 
 object `native-mostly-static` extends ScalafmtNativeImage {
@@ -60,7 +72,7 @@ object `native-mostly-static` extends ScalafmtNativeImage {
   def nativeImageDockerParams = Some(
     NativeImage.linuxMostlyStaticParams(
       "ubuntu:18.04", // TODO Pin that?
-      s"https://github.com/coursier/coursier/releases/download/v$csDockerVersion/cs-x86_64-pc-linux"
+      s"https://github.com/coursier/coursier/releases/download/v$csDockerVersion/cs-x86_64-pc-linux.gz"
     )
   )
 }
