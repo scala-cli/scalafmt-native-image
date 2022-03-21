@@ -16,6 +16,11 @@ trait ScalafmtNativeImage extends ScalaModule with NativeImage {
   def nativeImageClassPath = T{
     runClasspath()
   }
+  def nativeImageOptions = T{
+    super.nativeImageOptions() ++ Seq(
+      "--no-fallback"
+    )
+  }
   def nativeImagePersist = System.getenv("CI") != null
   def nativeImageGraalVmJvmId = "graalvm-java11:21.2.0"
   def nativeImageName = "scalafmt"
