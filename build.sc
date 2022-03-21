@@ -43,7 +43,7 @@ trait ScalafmtNativeImage extends ScalaModule with NativeImage {
 
 object native extends ScalafmtNativeImage
 
-def csDockerVersion = "2.0.16"
+def csDockerVersion = "2.1.0-M5-18-gfebf9838c"
 
 object `native-static` extends ScalafmtNativeImage {
   def nameSuffix = "-static"
@@ -57,7 +57,7 @@ object `native-static` extends ScalafmtNativeImage {
     Some(
       NativeImage.linuxStaticParams(
         "scala-cli-base-musl:latest",
-        s"https://github.com/coursier/coursier/releases/download/v$csDockerVersion/cs-x86_64-pc-linux"
+        s"https://github.com/coursier/coursier/releases/download/v$csDockerVersion/cs-x86_64-pc-linux.gz"
       )
     )
   }
@@ -72,7 +72,7 @@ object `native-mostly-static` extends ScalafmtNativeImage {
   def nativeImageDockerParams = Some(
     NativeImage.linuxMostlyStaticParams(
       "ubuntu:18.04", // TODO Pin that?
-      s"https://github.com/coursier/coursier/releases/download/v$csDockerVersion/cs-x86_64-pc-linux"
+      s"https://github.com/coursier/coursier/releases/download/v$csDockerVersion/cs-x86_64-pc-linux.gz"
     )
   )
 }
