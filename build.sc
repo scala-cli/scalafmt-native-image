@@ -22,7 +22,7 @@ trait ScalafmtNativeImage extends ScalaModule with NativeImage {
     )
   }
   def nativeImagePersist = System.getenv("CI") != null
-  def nativeImageGraalVmJvmId = "graalvm-java11:21.2.0"
+  def nativeImageGraalVmJvmId = "graalvm-java17:22.0.0"
   def nativeImageName = "scalafmt"
   def ivyDeps = super.ivyDeps() ++ Seq(
     ivy"org.scalameta::scalafmt-cli:$scalafmtVersion"
@@ -47,12 +47,24 @@ def csDockerVersion = "2.0.16"
 
 object `native-static` extends ScalafmtNativeImage {
   def nameSuffix = "-static"
-  def nativeImageDockerParams = Some(
-    NativeImage.linuxStaticParams(
-      "messense/rust-musl-cross@sha256:12d0dd535ef7364bf49cb2608ae7eaf60e40d07834eb4d9160c592422a08d3b3",
-      s"https://github.com/coursier/coursier/releases/download/v$csDockerVersion/cs-x86_64-pc-linux"
+  def buildHelperImage = T {
+    os.proc("docker", "build", "-t", "scala-cli-base-musl:latest", ".")
+      .call(cwd = os.pwd / "musl-image", stdout = os.Inherit)
+    ()
+  }
+  def nativeImageDockerParams = T{
+    buildHelperImage()
+    Some(
+      NativeImage.linuxStaticParams(
+        "scala-cli-base-musl:latest",
+        s"https://github.com/coursier/coursier/releases/download/v$csDockerVersion/cs-x86_64-pc-linux"
+      )
     )
-  )
+  }
+  def writeNativeImageScript(scriptDest: String, imageDest: String = "") = T.command {
+    buildHelperImage()
+    super.writeNativeImageScript(scriptDest, imageDest)()
+  }
 }
 
 object `native-mostly-static` extends ScalafmtNativeImage {
