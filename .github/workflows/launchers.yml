@@ -23,12 +23,12 @@ jobs:
         with:
           jvm: 8
       - run: |
-          ./mill -i "native.writeNativeImageScript" generate.sh && \
+          ./mill -i "native.writeNativeImageScript" generate.sh "" && \
           ./generate.sh && \
           ./mill -i "native.copyToArtifacts" artifacts/
         if: runner.os != 'Windows'
       - run: |
-          @call ./mill.bat -i "native.writeNativeImageScript" generate.bat
+          @call ./mill.bat -i "native.writeNativeImageScript" generate.bat ""
           @call generate.bat
           @call ./mill.bat -i "native.copyToArtifacts" artifacts/
         shell: cmd
@@ -56,7 +56,7 @@ jobs:
         with:
           jvm: 8
       - run: |
-          ./mill -i "native-static.writeNativeImageScript" generate.sh && \
+          ./mill -i "native-static.writeNativeImageScript" generate.sh "" && \
           ./generate.sh && \
           ./mill -i "native-static.copyToArtifacts" artifacts/
       - uses: actions/upload-artifact@v2.2.4
@@ -82,7 +82,7 @@ jobs:
         with:
           jvm: 8
       - run: |
-          ./mill -i "native-mostly-static.writeNativeImageScript" generate.sh && \
+          ./mill -i "native-mostly-static.writeNativeImageScript" generate.sh "" && \
           ./generate.sh && \
           ./mill -i "native-mostly-static.copyToArtifacts" artifacts/
       - uses: actions/upload-artifact@v2.2.4
