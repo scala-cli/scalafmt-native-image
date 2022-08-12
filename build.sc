@@ -1,6 +1,6 @@
 import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.1.4`
-import $ivy.`io.github.alexarchambault.mill::mill-native-image::0.1.19`
-import $ivy.`io.github.alexarchambault.mill::mill-native-image-upload:0.1.19`
+import $ivy.`io.github.alexarchambault.mill::mill-native-image::0.1.21`
+import $ivy.`io.github.alexarchambault.mill::mill-native-image-upload:0.1.21`
 
 import de.tobiasroeser.mill.vcs.version._
 import io.github.alexarchambault.millnativeimage.NativeImage
@@ -105,7 +105,7 @@ def upload(directory: String = "artifacts/") = T.command {
 
   val path = os.Path(directory, os.pwd)
   val launchers = os.list(path).filter(os.isFile(_)).map { path =>
-    path.toNIO -> path.last
+    path -> path.last
   }
   val ghToken = Option(System.getenv("UPLOAD_GH_TOKEN")).getOrElse {
     sys.error("UPLOAD_GH_TOKEN not set")
