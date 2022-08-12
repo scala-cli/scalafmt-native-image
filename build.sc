@@ -14,7 +14,79 @@ trait ScalafmtNativeImage extends ScalaModule with NativeImage {
   def scalaVersion = "2.13.8"
 
   def nativeImageClassPath = T{
-    runClasspath()
+    val origCp = runClasspath()
+    val tmpDir = T.dest / "jars"
+    os.makeDir.all(tmpDir)
+    origCp.map { p =>
+      val path = p.path
+      val name = path.last
+      // stripping the "--verbose" option from the native-image.properties in the scalafmt-cli JAR,
+      // as GraalVM 22.2 doesn't accept this option in properties files anymore
+      if (name.startsWith("scalafmt-cli_2.13-") && name.endsWith(".jar")) {
+        import java.io.{ByteArrayOutputStream, FileOutputStream, InputStream}
+        import java.util.zip.{ZipEntry, ZipFile, ZipOutputStream}
+        import scala.jdk.CollectionConverters._
+        val dest = tmpDir / name
+
+        var zf: ZipFile = null
+        var fos: FileOutputStream = null
+        var zos: ZipOutputStream = null
+        try {
+          zf = new ZipFile(path.toIO)
+          fos = new FileOutputStream(dest.toIO)
+          zos = new ZipOutputStream(fos)
+          val buf = Array.ofDim[Byte](64*1024)
+          for (ent <- zf.entries.asScala) {
+            val postProcess = ent.getName == "META-INF/native-image/org.scalafmt/scalafmt-cli/native-image.properties"
+
+            var is: InputStream = null
+            try {
+              is = zf.getInputStream(ent)
+
+              if (postProcess) {
+                val ent0 = new ZipEntry(ent.getName)
+                zos.putNextEntry(ent0)
+                val baos = new ByteArrayOutputStream
+                var read = -1
+                while ({
+                  read = is.read(buf)
+                  read >= 0
+                }) {
+                  if (read > 0)
+                    baos.write(buf, 0, read)
+                }
+                val content = new String(baos.toByteArray, "UTF-8")
+                val updatedContent = content.replace("--verbose \\\n", "")
+                zos.write(updatedContent.getBytes("UTF-8"))
+              }
+              else {
+                zos.putNextEntry(ent)
+                var read = -1
+                while ({
+                  read = is.read(buf)
+                  read >= 0
+                }) {
+                  if (read > 0)
+                    zos.write(buf, 0, read)
+                }
+              }
+            } finally {
+              if (is != null)
+                is.close()
+            }
+          }
+          zos.finish()
+        } finally {
+          if (zf != null) zf.close()
+          if (zos != null) zos.close()
+          if (fos != null) fos.close()
+        }
+
+        PathRef(dest)
+      }
+      else
+        p
+    }
   }
   def nativeImageOptions = T{
     super.nativeImageOptions() ++ Seq(
@@ -22,7 +94,7 @@ trait ScalafmtNativeImage extends ScalaModule with NativeImage {
     )
   }
   def nativeImagePersist = System.getenv("CI") != null
-  def nativeImageGraalVmJvmId = "graalvm-java17:22.0.0"
+  def nativeImageGraalVmJvmId = "graalvm-java17:22.2.0"
   def nativeImageName = "scalafmt"
   def ivyDeps = super.ivyDeps() ++ Seq(
     ivy"org.scalameta::scalafmt-cli:$scalafmtVersion"
