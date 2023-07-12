@@ -1,6 +1,6 @@
-import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.3.0`
-import $ivy.`io.github.alexarchambault.mill::mill-native-image::0.1.23`
-import $ivy.`io.github.alexarchambault.mill::mill-native-image-upload:0.1.21`
+import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.3.1`
+import $ivy.`io.github.alexarchambault.mill::mill-native-image::0.1.25`
+import $ivy.`io.github.alexarchambault.mill::mill-native-image-upload:0.1.23`
 
 import de.tobiasroeser.mill.vcs.version._
 import io.github.alexarchambault.millnativeimage.NativeImage
@@ -8,10 +8,10 @@ import io.github.alexarchambault.millnativeimage.upload.Upload
 import mill._
 import mill.scalalib._
 
-def scalafmtVersion = "3.7.3"
+def scalafmtVersion = "3.7.8"
 
 trait ScalafmtNativeImage extends ScalaModule with NativeImage {
-  def scalaVersion = "2.13.10"
+  def scalaVersion = "2.13.11"
 
   def nativeImageClassPath = T{
     val origCp = runClasspath()
@@ -186,5 +186,5 @@ def upload(directory: String = "artifacts/") = T.command {
     if (version.endsWith("-SNAPSHOT")) ("launchers", true)
     else ("v" + version, false)
 
-  Upload.upload("scala-cli", "scalafmt-native-image", ghToken, tag, dryRun = false, overwrite = overwriteAssets)(launchers: _*)
+  Upload.upload("virtuslab", "scalafmt-native-image", ghToken, tag, dryRun = false, overwrite = overwriteAssets)(launchers: _*)
 }
