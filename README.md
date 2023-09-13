@@ -2,7 +2,7 @@
 
 _Note that Scala Native support in scalafmt is in the works. As soon as it is stable and provides launchers for Linux / macOS / Windows, the repository here should be sunset._
 
-These launchers are generated on the scalafmt-native-image CI, and pushed [here](https://github.com/alexarchambault/scalafmt-native-image/releases/tag/launchers).
+These launchers are generated on the scalafmt-native-image CI, and released [here](https://github.com/VirtusLab/scalafmt-native-image/releases/).
 
 These launchers aim at being consumed by [Scala CLI](https://github.com/VirtusLab/scala-cli), but can also be useful on their own. Note that if the launcher scalafmt version and the scalafmt version in `.scalafmt.conf` don't match, the launcher will not proceed and fail loudly. Those versions have to match.
 
